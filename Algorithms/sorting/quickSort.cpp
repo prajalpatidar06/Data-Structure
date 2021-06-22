@@ -14,12 +14,13 @@ int select (int arr[],int st,int end){
     }
     sum = (sum)/(end-st+1);
     int ipvt =0,pvt=sum-arr[0];
+    if(pvt<0)pvt*=-1;
     int temp;
     for(int i=st+1;i<=end;i++){
         temp = arr[i]-sum;
         if(temp<0)
             temp*=(-1);
-        if(temp<arr[pvt]){
+        if(temp<pvt){
             pvt=temp;
             ipvt=i;
         }
