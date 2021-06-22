@@ -7,8 +7,28 @@ void swap(int &a,int &b){
     b=temp;
 }
 
+int select (int arr[],int st,int end){
+    int sum=0;
+    for(int i=st;i<=end;i++){
+        sum+=arr[i];
+    }
+    sum = (sum)/(end-st+1);
+    int ipvt =0,pvt=sum-arr[0];
+    int temp;
+    for(int i=st+1;i<=end;i++){
+        temp = arr[i]-sum;
+        if(temp<0)
+            temp*=(-1);
+        if(temp<arr[pvt]){
+            pvt=temp;
+            ipvt=i;
+        }
+    }
+    return ipvt;
+}
+
 int part(int arr[],int st,int end){
-    int pvt=st;
+    int pvt=select(arr,st,end);
     int k=st;
     int l=end;
     while(k<=l){
