@@ -44,13 +44,14 @@ ostream & operator<<(ostream &out,big t){
 
 istream & operator>>(istream &out,big &t){
     out>>t.data;
+    t = t.data;
     return out;
 }
 
 big operator+(big t1 , big t2){
-    if(validOperation(t1,t2,'+') == '-')
-        return t1;
     makeEqual(t1,t2);
+    if(validOperation(t1,t2,'+') == '-')
+        return t1-t2;
     big t;
     int a , b ,sum, carry=0;
     for(ll i=t1.size-1;i>=0;i--){
@@ -68,17 +69,26 @@ big operator+(big t1 , big t2){
     return t;
 }
 
-// big operator-(big t1 , big t2){
-//     if(validOperation(t1,t2,'-') == '+')
-//         return t1+t2;
-//     makeEqual(t1,t2);
-//     big t;
-//     int a , b , ans , carry=0;
-//     for(ll i = t1.size-1;i>=0;i--){
-        
-//     }
-//     return t;
-// }
+big operator-(big t1 , big t2){
+    makeEqual(t1,t2);
+    if(validOperation(t1,t2,'-') == '+')
+        return t1+t2;
+    big t;
+    int a , b , ans , carry=0;
+    for(ll i = t1.size-1;i>=0;i--){
+        a = t1.data[i];
+        b = t2.data[i];
+        ans = a - b - carry;
+        if(ans < 0){
+            ans = (10 + a ) - b - carry;
+            carry = 1;
+        }else carry = 0;
+        t.data = to_string(ans) + t.data;
+    }
+    t.sign = t1.sign;
+    t.size = t.data.size();
+    return t;
+}
 
 // big operator*(big t1 , big t2){
 //     big t;
@@ -107,18 +117,46 @@ void makeEqual(big &t1 , big &t2){
         t1.data = b+t1.data;
         t1.size = t2.size;
     }
-    
+
+    // arrange order for easy operation 
+    bool check = true;
+    for(int i=0;i<t1.size;i++){
+        if(t2.data[i] > t1.data[i]){
+            check = false;
+            break;
+        }else if(t1.data[i] > t2.data[i]){
+            check = true;
+            break;
+        }
+    }
+    big t3;
+    if(check == false){
+        t3 = t1;
+        t1 = t2;
+        t2 = t3;
+    }
 }
 
 char validOperation(big &t1 , big &t2 , char op){
     if(op == '+'){
-        if(t1.sign==t2.sign)return '+';
-        else return '-';
-    }else{
+        if(t1.sign==t2.sign && op == '+')return '+';
+        if(t1.sign != t2.sign){
+            if(t2.sign == '-')t2.sign = '+';
+            else if(t1.sign == '-')t2.sign = '-';
+            return '-';
+        }
+        else return '+';
+    }else if(op == '-'){
         if(t2.sign == '-'){
             t2.sign = '+';
+            op = '+';
         }
-        if(t1.sign==t2.sign)return '+';
+        if(t1.sign==t2.sign && op == '+')return '+';
+        else if(t1.sign=='-' && op == '-'){
+            t2.sign = '-';
+            return '+';
+        }
         else return '-';
     }
+    return op;
 }
