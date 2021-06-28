@@ -1,16 +1,13 @@
-// #include<iostream>
+#include<iostream>
 #include<string>
+#include<vector>
 #include<algorithm>
 #define n 10;
 using namespace std;
 #define ll long long
 
  //product fiinding function
-string power(string s , int size);
-string product(string t1 , string t2);
-string strAdd(string a , string b);
-void trailstr(string &s);
-void addEqual(string &t1 , string &t2); 
+string multiply(string num1, string num2);
 
 // divide functions
 int judge(string a,string b);
@@ -35,7 +32,6 @@ public:
     friend big operator-(big t1 , big t2);
     friend big operator*(big t1 , big t2);
     friend big operator/(big t1 , big t2);
-    friend bool isGreater(big t1 , big v);
     // size checking and make equal size of both value to be perform
     friend void makeEqual(big &t1 , big &t2);
     friend void prodEqual(big &t1 , big &t2); 
@@ -43,8 +39,20 @@ public:
     friend char validOperation(big &t1 , big &t2 , char op);
     // trailing zeros
     void trailzero();
+    // conditional operator
+    friend bool operator<(big t1 , big t2);
+    friend bool operator>(big t1 , big t2);
+    friend bool operator==(big t1 , big t2);
+    friend bool operator>=(big t1 , big t2);
+    friend bool operator<=(big t1 , big t2);
 };
 
+// data type converter
+big to_big(int x);
+
+
+
+// big class function start
 void big::operator=(string t){
     if(t[0] == '-'){
         sign = '-';
@@ -112,110 +120,15 @@ big operator-(big t1 , big t2){
     t.trailzero();
     return t;
 }
-
+// multiply operation
 big operator*(big t1 , big t2){
     big t;
     prodEqual(t1,t2);
-    t.data = product(t1.data , t2.data);
+    t.data = multiply(t1.data , t2.data);
     if(t1.sign != t2.sign)t.sign = '-';
     t.size = t.data.size();
     t.trailzero();
     return t;
-}
-
-string product(string t1 , string t2){
-    if(t1.size()<=4 && t2.size()<=4){
-        ll p = stoi(t1);
-        ll q = stoi(t2);
-        return to_string(p*q);
-    }
-    int size = t1.size();
-    string a , b , c , d , ac,bd,ad,bc , adbc;
-    a = t1.substr(0,size/2);
-    b = t1.substr(size/2,size);
-    c = t2.substr(0,size/2);
-    d = t2.substr(size/2,size);
-
-    ac = product(a , c);
-    bd = product(b , d);
-    ad = product(a , d);
-    bc = product(b , c);
-
-    return strAdd(strAdd(power(ac,size),power(strAdd(ad,bc),size/2)),bc);
-}
-
-string power(string s , int size){
-    string b;
-    while(size--)b+='0';
-    return s+b;
-}
-
-string strAdd( string a , string b){
-    string ans;
-    addEqual(a,b);
-    int x , y ,sum, carry=0;
-    for(ll i=a.size()-1;i>=0;i--){
-        x = a[i]-'0';
-        y = b[i]-'0';
-        sum = x + y + carry;
-       
-        carry = sum/10;
-        sum = sum%10;
-       ans  = to_string(sum) + ans;    
-    }
-    if(carry)ans = to_string(carry) + ans;
-    trailstr(ans);
-    return ans;
-}
-
-void trailstr(string &s){
-    int count = 0,i=0;
-    while(s[i++] == '0')count++;
-    s = s.substr(count,s.size());
-}
-
-big operator/(big t1 , big t2){
-    big t;
-    t.data = divide(t1.data,t2.data);
-    t.size = t.data.size();
-    t.sign =(t1.sign == t2.sign)? '+': '-';
-    return t;
-}
-
-
-void makeEqual(big &t1 , big &t2){
-    if(t1.size == t2.size)return;
-    
-    ll temp = t1.size - t2.size;
-    string b;
-    if(temp > 0){
-        while(temp--)b+='0';
-        t2.data = b+t2.data;
-        t2.size = t1.size;
-    }else{
-        temp*=-1;
-        while(temp--)b+='0';
-        t1.data = b+t1.data;
-        t1.size = t2.size;
-    }
-
-    // arrange order for easy operation 
-    bool check = true;
-    for(int i=0;i<t1.size;i++){
-        if(t2.data[i] > t1.data[i]){
-            check = false;
-            break;
-        }else if(t1.data[i] > t2.data[i]){
-            check = true;
-            break;
-        }
-    }
-    big t3;
-    if(check == false){
-        t3 = t1;
-        t1 = t2;
-        t2 = t3;
-    }
 }
 
 void prodEqual(big &t1 , big &t2){
@@ -244,56 +157,88 @@ void prodEqual(big &t1 , big &t2){
     t1.size=t2.size=t1.size+var;
 }
 
-void addEqual(string &t1 , string &t2){
-    if(t1.size() != t2.size()){
-        int length  = t1.size();
-        length = t1.length() - t2.length();
-        string b;
-        if(length > 0){
-            while(length--)b+='0';
-            t2 = b + t2;
-        }else{
-            length*=-1;
-            while(length--)b+='0';
-            t1 = b+t1;
-        }
-    }
+string multiply(string num1, string num2)
+{
+	int len1 = num1.size();
+	int len2 = num2.size();
+	if (len1 == 0 || len2 == 0)
+	return "0";
+
+	// will keep the result number in vector
+	// in reverse order
+	vector<int> result(len1 + len2, 0);
+
+	// Below two indexes are used to find positions
+	// in result.
+	int i_n1 = 0;
+	int i_n2 = 0;
+	
+	// Go from right to left in num1
+	for (int i=len1-1; i>=0; i--)
+	{
+		int carry = 0;
+		int n1 = num1[i] - '0';
+
+		// To shift position to left after every
+		// multiplication of a digit in num2
+		i_n2 = 0;
+		
+		// Go from right to left in num2			
+		for (int j=len2-1; j>=0; j--)
+		{
+			// Take current digit of second number
+			int n2 = num2[j] - '0';
+
+			// Multiply with current digit of first number
+			// and add result to previously stored result
+			// at current position.
+			int sum = n1*n2 + result[i_n1 + i_n2] + carry;
+
+			// Carry for next iteration
+			carry = sum/10;
+
+			// Store result
+			result[i_n1 + i_n2] = sum % 10;
+
+			i_n2++;
+		}
+
+		// store carry in next cell
+		if (carry > 0)
+			result[i_n1 + i_n2] += carry;
+
+		// To shift position to left after every
+		// multiplication of a digit in num1.
+		i_n1++;
+	}
+
+	// ignore '0's from the right
+	int i = result.size() - 1;
+	while (i>=0 && result[i] == 0)
+	i--;
+
+	// If all were '0's - means either both or
+	// one of num1 or num2 were '0'
+	if (i == -1)
+	return "0";
+
+	// generate the result string
+	string s = "";
+	
+	while (i >= 0)
+		s += std::to_string(result[i--]);
+
+	return s;
 }
-
-char validOperation(big &t1 , big &t2 , char op){
-    if(op == '+'){
-        if(t1.sign==t2.sign && op == '+')return '+';
-        if(t1.sign != t2.sign){
-            if(t2.sign == '-')t2.sign = '+';
-            else if(t1.sign == '-')t2.sign = '-';
-            return '-';
-        }
-        else return '+';
-    }else if(op == '-'){
-        if(t2.sign == '-'){
-            t2.sign = '+';
-            op = '+';
-        }
-        if(t1.sign==t2.sign && op == '+')return '+';
-        else if(t1.sign=='-' && op == '-'){
-            t2.sign = '-';
-            return '+';
-        }
-        else return '-';
-    }
-    return op;
-}
-
-void big::trailzero(){
-    int count = 0,i=0;
-    while(data[i++] == '0')count++;
-    size = size-count;
-    data = data.substr(count,size);
-}
-
-
 
 // divide function
+big operator/(big t1 , big t2){
+    big t;
+    t.data = divide(t1.data,t2.data);
+    t.size = t.data.size();
+    t.sign =(t1.sign == t2.sign)? '+': '-';
+    return t;
+}
 
 string dezero(string a)//Used to remove the zero before the positive number, that is to say, you can enter 000001 like this number
 {
@@ -412,3 +357,120 @@ string minuss(string a,string b)//subtraction of natural numbers
 	e=dezero(e);
 	return e;
 }
+
+void makeEqual(big &t1 , big &t2){
+    if(t1.size == t2.size)return;
+    
+    ll temp = t1.size - t2.size;
+    string b;
+    if(temp > 0){
+        while(temp--)b+='0';
+        t2.data = b+t2.data;
+        t2.size = t1.size;
+    }else{
+        temp*=-1;
+        while(temp--)b+='0';
+        t1.data = b+t1.data;
+        t1.size = t2.size;
+    }
+
+    // arrange order for easy operation 
+    bool check = true;
+    for(int i=0;i<t1.size;i++){
+        if(t2.data[i] > t1.data[i]){
+            check = false;
+            break;
+        }else if(t1.data[i] > t2.data[i]){
+            check = true;
+            break;
+        }
+    }
+    big t3;
+    if(check == false){
+        t3 = t1;
+        t1 = t2;
+        t2 = t3;
+    }
+}
+
+char validOperation(big &t1 , big &t2 , char op){
+    if(op == '+'){
+        if(t1.sign==t2.sign && op == '+')return '+';
+        if(t1.sign != t2.sign){
+            if(t2.sign == '-')t2.sign = '+';
+            else if(t1.sign == '-')t2.sign = '-';
+            return '-';
+        }
+        else return '+';
+    }else if(op == '-'){
+        if(t2.sign == '-'){
+            t2.sign = '+';
+            op = '+';
+        }
+        if(t1.sign==t2.sign && op == '+')return '+';
+        else if(t1.sign=='-' && op == '-'){
+            t2.sign = '-';
+            return '+';
+        }
+        else return '-';
+    }
+    return op;
+}
+
+void big::trailzero(){
+    int count = 0,i=0;
+    while(data[i++] == '0')count++;
+    size = size-count;
+    data = data.substr(count,size);
+}
+
+// conditional operation
+bool operator<(big t1 , big t2){
+    if(t1.size < t2.size || (t1.sign == '-' && t2.sign == '+'))return true;
+    else if(t1.size > t2.size)return false;
+    else
+        for(ll i=0; i<t1.size;i++)
+            if(t1.data[i]>=t2.data[i])
+                return false;
+            else
+                return true;
+    return true;
+}
+
+bool operator<=(big t1 , big t2){
+    if(t1<t2 || t1==t2)return true;
+    else return false;
+}
+
+bool operator==(big t1 , big t2){
+    if(t1.size < t2.size || t1.size > t2.size || (t1.sign != t2.sign ))return false;
+    else
+        for(ll i=0; i<t1.size;i++)
+            if(t1.data[i]>t2.data[i] || t1.data[i] < t2.data[i])
+                return false;
+    return true;
+}
+
+bool operator>(big t1 , big t2){
+    if(t1.size > t2.size || (t1.sign == '+' && t2.sign == '-'))return true;
+    else if(t1.size < t2.size)return false;
+    else
+        for(ll i=0; i<t1.size;i++)
+            if(t1.data[i]<= t2.data[i])
+                return false;
+            else
+                return true;
+    return true;
+}
+
+bool operator>=(big t1 , big t2){
+    if(t1>t2 || t1==t2)return true;
+    else return false;
+}
+// int to big converting
+big to_big(int x){
+    big t;
+    t = to_string(x);
+    return t;
+}
+
