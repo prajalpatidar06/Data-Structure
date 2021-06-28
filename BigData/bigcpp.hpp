@@ -1,6 +1,9 @@
-#include<iostream>
-#define ll long long
+// #include<iostream>
+#include<string>
+#include<algorithm>
+#define n 10;
 using namespace std;
+#define ll long long
 
  //product fiinding function
 string power(string s , int size);
@@ -8,6 +11,12 @@ string product(string t1 , string t2);
 string strAdd(string a , string b);
 void trailstr(string &s);
 void addEqual(string &t1 , string &t2); 
+
+// divide functions
+int judge(string a,string b);
+string dezero(string a);
+string minuss(string a,string b);
+string divide(string a,string b);
 
 class big
 {
@@ -166,53 +175,13 @@ void trailstr(string &s){
 }
 
 big operator/(big t1 , big t2){
-    big t,temp,v;
-    ll count = 0;
-    bool check=true;
-    string s;
-    while(check){
-        v = v+t2;
-        if(isGreater(t1,v) == false){
-            check = false;
-            continue;
-        }
-        count++;
-        if(count > 1000000000){
-            temp = to_string( count);
-            t = t + temp;
-            count = 0;
-        }
-    }
-
-    if(count >= 0){
-        t = to_string(count);
-    }
-    t.sign = (t1.sign == t2.sign)?'+':'-';
-    if(t.data.size() == 0){
-        t.data = '0';
-    }
+    big t;
+    t.data = divide(t1.data,t2.data);
     t.size = t.data.size();
+    t.sign =(t1.sign == t2.sign)? '+': '-';
     return t;
 }
 
-bool isGreater(big t1 , big v){
-    if(t1.size > v.size)return true;
-    else if(t1.size < v.size)return false;
-    else{
-        bool check = true;
-        for(ll i=0;i<t1.size;i++){
-            if(t1.data[i] >  v.data[i]){
-                check  = true;
-                break;
-            }else if(t1.data[i] < v.data[i]){
-                check = false;
-                break;
-            }
-        }
-        if(check)return true;
-        else return false;
-    }
-}
 
 void makeEqual(big &t1 , big &t2){
     if(t1.size == t2.size)return;
@@ -320,4 +289,126 @@ void big::trailzero(){
     while(data[i++] == '0')count++;
     size = size-count;
     data = data.substr(count,size);
+}
+
+
+
+// divide function
+
+string dezero(string a)//Used to remove the zero before the positive number, that is to say, you can enter 000001 like this number
+{
+	long int i;
+	for(i=0;i<a.length();i++)
+	{
+		if(a.at(i)>48) break;
+	}
+	if(i==a.length()) return "0";
+	a.erase(0,i);
+	return a;
+}
+ int judge(string a,string b)//Judge the size of two positive numbers
+{
+	if(a.length()>b.length()) return 1;
+	if(a.length()<b.length()) return -1;
+	long int i;
+	for(i=0;i<a.length();i++)
+	{
+		if(a.at(i)>b.at(i)) return 1;
+		if(a.at(i)<b.at(i)) return -1;
+	}
+	return 0;
+}
+string minuss(string a,string b)//subtraction of natural numbers
+{
+	a=dezero(a);
+	b=dezero(b);
+	long int i,j=0;
+	string c="0";
+	string c1,c2;
+	string d="-";
+	if(judge(a,b)==0) return c;
+	if(judge(a,b)==1)
+	{
+		c1=a;
+		c2=b;
+	}
+	if(judge(a,b)==-1)
+	{
+		c1=b;
+		c2=a;
+		j=-1;
+	}
+	reverse(c1.begin(),c1.end());
+	reverse(c2.begin(),c2.end());
+	for(i=0;i<c2.length();i++)
+	{
+		if(c2.at(i)>=48&&c2.at(i)<=57) c2.at(i)-=48;
+		if(c2.at(i)>=97&&c2.at(i)<=122) c2.at(i)-=87;
+	}
+	for(i=0;i<c1.length();i++)
+	{
+		if(c1.at(i)>=48&&c1.at(i)<=57) c1.at(i)-=48;
+		if(c1.at(i)>=97&&c1.at(i)<=122) c1.at(i)-=87;
+	}
+	for(i=0;i<c2.length();i++)
+	{
+		c1.at(i)=c1.at(i)-c2.at(i);
+	}
+	for(i=0;i<c1.length()-1;i++)
+	{
+		if(c1.at(i)<0)
+		{
+			c1.at(i)+=n;
+			c1.at(i+1)--;
+		}
+	}
+	for(i=c1.length()-1;i>=0;i--)
+	{
+		if(c1.at(i)>0) break;
+	}
+	c1.erase(i+1,c1.length());
+	for(i=0;i<c1.length();i++)
+	{
+		if(c1.at(i)>=10) c1.at(i)+=87;
+		if(c1.at(i)<10) c1.at(i)+=48;
+	}
+	reverse(c1.begin(),c1.end());
+	if(j==-1) c1.insert(0,d);
+	return c1;
+}
+ string divide(string a,string b)//Division of natural numbers
+{
+	if(b.length()==1&&b.at(0)==48) return "error";
+	long int i,j;
+	string c1,c2,d,e;
+	if(judge(a,b)==0) return "1";
+	if(judge(a,b)==-1)
+	{
+		return "0";
+	}
+	c1=dezero(a);
+	c2=dezero(b);
+	d="";
+	e="";
+	for(i=0;i<c1.length();i++)
+	{
+		j=0;
+		d=d+c1.at(i);
+		d=dezero(d);
+		while(judge(d,b)>=0)
+		{
+			 d=minuss(d,b);//Call the minus function minus before, also added in this article
+			d=dezero(d);
+			j++;
+		}
+		e=e+"0";
+		e.at(i)=j;
+	}
+	for(i=0;i<e.length();i++)
+	{
+		if(e.at(i)>=10) e.at(i)+=87;
+		if(e.at(i)<10) e.at(i)+=48;
+	}
+	e=dezero(e);
+	return e;
 }
