@@ -25,7 +25,8 @@ public:
     friend big operator+(big t1 , big t2);
     friend big operator-(big t1 , big t2);
     friend big operator*(big t1 , big t2);
-    // friend big operator/(big t1 , big t2);
+    friend big operator/(big t1 , big t2);
+    friend bool isGreater(big t1 , big v);
     // size checking and make equal size of both value to be perform
     friend void makeEqual(big &t1 , big &t2);
     friend void prodEqual(big &t1 , big &t2); 
@@ -164,11 +165,54 @@ void trailstr(string &s){
     s = s.substr(count,s.size());
 }
 
-// big operator/(big t1 , big t2){
-//     big t;
-//     t.data = t1.data/t2.data;
-//     return t;
-// }
+big operator/(big t1 , big t2){
+    big t,temp,v;
+    ll count = 0;
+    bool check=true;
+    string s;
+    while(check){
+        v = v+t2;
+        if(isGreater(t1,v) == false){
+            check = false;
+            continue;
+        }
+        count++;
+        if(count > 1000000000){
+            temp = to_string( count);
+            t = t + temp;
+            count = 0;
+        }
+    }
+
+    if(count >= 0){
+        t = to_string(count);
+    }
+    t.sign = (t1.sign == t2.sign)?'+':'-';
+    if(t.data.size() == 0){
+        t.data = '0';
+    }
+    t.size = t.data.size();
+    return t;
+}
+
+bool isGreater(big t1 , big v){
+    if(t1.size > v.size)return true;
+    else if(t1.size < v.size)return false;
+    else{
+        bool check = true;
+        for(ll i=0;i<t1.size;i++){
+            if(t1.data[i] >  v.data[i]){
+                check  = true;
+                break;
+            }else if(t1.data[i] < v.data[i]){
+                check = false;
+                break;
+            }
+        }
+        if(check)return true;
+        else return false;
+    }
+}
 
 void makeEqual(big &t1 , big &t2){
     if(t1.size == t2.size)return;
