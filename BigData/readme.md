@@ -68,7 +68,7 @@ Conditional Operation
 ```bash
   big x,y;
   x ="-334";
-  y = "234325"
+  y = "234325";
   if(x<y){}
   if(x<=y){}
   if(x==y){}
