@@ -17,6 +17,16 @@ BigData is C++ header file. used in arithmatic operation of large data (~upto 80
   
 ## How to use
 
+How to add header file in your code
+
+```bash
+  #include<iostream>
+  #include"bigcpp.hpp"
+  int main(){
+  
+  }
+```
+
 Variable Declearation and initialization
 
 ```bash
