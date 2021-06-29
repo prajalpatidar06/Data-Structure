@@ -64,6 +64,3 @@ Conditional Operation
   ## Authors
 
 - [@Prajal Patidar](https://www.github.com/prajalpatidar06)
-- [@Himani Kinkar](https://www.github.com/himanikinkar)
-
-  
