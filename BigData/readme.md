@@ -3,7 +3,7 @@
 
 # BigData
 
-BigData is C++ header file. used in arithmatic operation of large data (~upto 2^32 digits)
+BigData is C++ header file. used in arithmatic operation of large data (~upto 5000 digits)
 
   
 
