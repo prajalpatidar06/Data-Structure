@@ -76,6 +76,3 @@ Conditional Operation
   if(x>y){}
 ```
 
-  ## Authors
-
-- [@Prajal Patidar](https://www.github.com/prajalpatidar06)
