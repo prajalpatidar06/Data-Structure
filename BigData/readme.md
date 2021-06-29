@@ -9,12 +9,9 @@ BigData is C++ header file. used in arithmatic operation of large data (~upto 80
 
 ## Feature
 
-- Addition
-- Subtraction
-- Divide
-- Multiplication
-- Square/Squareroot
-- Factorial
+- Basic Arithematic Operation
+- Conditional Operator
+- Easy to use
 - and many more...
 
   
@@ -26,6 +23,14 @@ Variable Declearation and initialization
   big x , y;
   x = "123";
   y = "456";
+```
+
+Use of cin and cout operator
+
+```bash
+  big x;
+  cin>>x;
+  cout<<x;
 ```
 
 Arithematic Operation
