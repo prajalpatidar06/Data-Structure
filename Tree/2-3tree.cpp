@@ -11,11 +11,10 @@ struct tree{
     node*root=NULL;
     void insert(int x){root = insert(x,root);}
     node* insert(int x , node* p);
-    node* midElement(int k1 , int k2 , int x);
     node* mid(node *p , node* temp);
     int height(node*p);
-    void remove(int x);
     node* search(int x);
+    void remove(int x);
 };
 
 int main(){
@@ -29,6 +28,7 @@ int main(){
     t.insert(12);
     // t.insert(8);
     // t.insert(60);
+    node* q = t.search(7);
     return 0;
 }
 
@@ -137,35 +137,6 @@ node* tree::mid(node* p,node* t){
     return q;
 }
 
-node* tree::midElement(int k1 , int k2 , int x){
-    node* temp=NULL;
-    if(k1 < x && x < k2){
-        temp = new node;
-        temp->key1 = x;
-        temp->left = new node;
-        temp->left->key1 = k1;
-        temp->mid = new node;
-        temp->mid->key1 = k2;
-    }
-    else if(k2 < x){
-        temp = new node;
-        temp->key1 = k2;
-        temp->left = new node;
-        temp->left->key1 = k1;
-        temp->mid = new node;
-        temp->mid->key1 = x;
-    }
-    else if(k1 > x){
-        temp = new node;
-        temp->key1 = k1;
-        temp->left = new node;
-        temp->left->key1 = x;
-        temp->mid = new node;
-        temp->mid->key1 = k2;
-    }
-    return temp;
-}
-
 int tree::height(node* p){
     if(p==NULL)return 0;
     int hl,hm,hr;
@@ -174,4 +145,27 @@ int tree::height(node* p){
     hr = (p->right)?p->right->height:0;
 
     return max(max(hl,hm),hr)+1;
+}
+
+node* tree::search(int x){
+    static node*p = root;
+    if(x == p->key1 || x == p->key2)
+        return p;
+    else if(x<p->key1){
+        p=p->left;
+       return search(x);
+    }
+    else if(x > p->key1 && p->key2 == 0){
+        p=p->mid;
+        return search(x);
+    }
+    else if(x > p->key2){
+        p = p->right;
+        return search(x);
+    }
+    return NULL;
+}
+
+void tree::remove(int x){
+    
 }
