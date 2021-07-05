@@ -39,6 +39,7 @@ node* tree::insert(int x , node* p){
         p->key1=x;
         return p;
     }
+    if(x == p->key1 || x == p->key2)return p;
     if(x < p->key1){
         if(p->left)
             temp = insert(x,p->left);
