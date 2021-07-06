@@ -15,7 +15,7 @@ public:
     node* insert(int x , node* p);
     int height(node* p);
     node* mid(node* p , node* t);
-    void search(int x);
+    node* search(int x);
     void remove(int x);
 };
 
@@ -24,13 +24,13 @@ int main(){
     t.insert(3);
     t.insert(5);
     t.insert(7);
-    t.insert(7);
     t.insert(14);
     t.insert(17);
     t.insert(13);
     t.insert(12);
     t.insert(8);
     t.insert(60);
+    node* q = t.search(14);
     return 0;
 }
 
@@ -99,7 +99,7 @@ node* tree::insert(int x , node *p){
     }
 
     p->height = height(p);
-    if(temp && p->height - temp->height == 0){
+    if(temp && p->height == temp->height){
         if(temp->key2)return p;
         else if(p->key1 > temp->key1){
             if(p->key2 == 0){
@@ -119,11 +119,29 @@ node* tree::insert(int x , node *p){
             }
             else p = mid(p,temp);
         }
-        else if(p->key1 < temp->key1 && p->key2 == 0);
-        else if(p->key1 < temp->key1 && p->key2 > temp->key1);
-        else if(p->key2 < temp->key1 && p->key3 == 0);
-        else if(p->key2 < temp->key1 && p->key3 > temp->key1);
+        else if(p->key1 < temp->key1 && p->key2 == 0){
+            p->key2 = temp->key1;
+            p->lmid = temp->left;
+            p->rmid = temp->lmid;
+        }
+        else if(p->key1 < temp->key1 && p->key2 > temp->key1){
+            if(p->key3 == 0){
+                p->key3 = p->key2;
+                p->right = p->rmid;
+                p->key2 = temp->key1;
+                p->lmid = temp->left;
+                p->rmid = temp->lmid;
+            }else p = mid(p,temp);
+        }
+        else if(p->key2 < temp->key1 && p->key3 == 0){
+            p->key3 = temp->key1;
+            p->rmid = temp->left;
+            p->right = temp->lmid;
+        }
+        else
+            p = mid(p,temp);
     }
+    else if( temp && temp->height > p->height)return temp;
     return p;
 }
 
@@ -178,4 +196,27 @@ int tree::height(node*p){
     hrm = (p && p->rmid)?p->rmid->height:0;
     hr = (p && p->right)?p->right->height:0;
     return max(max(hl,hlm),max(hrm,hr))+1;
+}
+
+node* tree::search(int x){
+    static node* p = root;
+    if(!p) return NULL;
+    else if(p->key1 == x || p->key2 == x || p->key3 == x)return p;
+    else if(x < p->key1){
+         p = p->left;
+         search(x);
+    }
+    else if(x > p->key1 && (p->key2 == 0 || x < p->key2 )){
+        p = p->lmid;
+        search(x);
+    }
+    else if(x > p->key2 && (p->key3 == 0 || p->key3 > x)){
+        p = p->rmid;
+        search(x);
+    }
+    else if(x > p->key3){
+        p = p->right;
+        search(x);
+    }
+    return NULL;
 }
