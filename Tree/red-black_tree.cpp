@@ -27,6 +27,7 @@ int main(){
     t.insert(12);
     t.insert(8);
     t.insert(60);
+    node*q = t.search(8);
     return 0;
 }
 
@@ -87,9 +88,18 @@ node* tree::insert(int x , node* p){
             signal = 0;
         }
     }
-    
+
     if( p == root) p->color = false;
     if(p->color == 1 && (p->left && p->left->color == 1 || p->right && p->right->color == 1)) signal = true;
 
     return p;
+}
+
+node* tree::search(int x){
+    static node*p = root;
+    if(p== NULL)return NULL;
+    else if(p->data == x)return p;
+    else if(p->data < x)p = p->right;
+    else p = p->left;
+    return search(x);
 }
