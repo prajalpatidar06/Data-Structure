@@ -1,7 +1,7 @@
 
 # DSA Implementation
 
-In these Repository you will find different Data structure and Algorithm.
+In these Repository you will find Implementation of Data structure and Algorithm.
 
 
 ## Features
