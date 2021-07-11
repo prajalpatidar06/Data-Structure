@@ -11,6 +11,7 @@ In these Repository you will find different Data structure and Algorithm.
 - [Tree](https://github.com/prajalpatidar06/Data-Structure-Algorithm/tree/main/Tree)
 - [Big data](https://github.com/prajalpatidar06/Data-Structure-Algorithm/tree/main/BigData)
 - [Heap](https://github.com/prajalpatidar06/Data-Structure-Algorithm/tree/main/Heap)
+- [Set](https://github.com/prajalpatidar06/Data-Structure-Algorithm/tree/main/Set)
 - [SQL](https://github.com/prajalpatidar06/Data-Structure-Algorithm/tree/main/SQL)
 
 
