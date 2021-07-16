@@ -2,12 +2,18 @@
 #include<string>
 #include<vector>
 #include<algorithm>
-#define n 10;
 using namespace std;
 #define ll long long
+enum PaddingType { LEFT, RIGHT };
 
  //product fiinding function
-string multiply(string num1, string num2);
+string karatsuba(string num1,string num2);
+string trailzero(string num);
+bool isZero(string num);
+string mulIntStringByChar(string num1 , char num2);
+string sumIntString(string num1 , string num2);
+string subIntString(string num1 , string num2);
+string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType = RIGHT);
 
 // divide functions
 int judge(string a,string b);
@@ -34,7 +40,6 @@ public:
     friend big operator/(big t1 , big t2);
     // size checking and make equal size of both value to be perform
     friend void makeEqual(big &t1 , big &t2);
-    friend void prodEqual(big &t1 , big &t2); 
     // to check given operation is valid
     friend char validOperation(big &t1 , big &t2 , char op);
     // trailing zeros
@@ -49,7 +54,11 @@ public:
 
 // data type converter
 big to_big(int x);
-
+// squareroot finder
+big power(big t1 , big t2){
+    if(t2 < to_big(1))return to_big(1);
+    return t1*power(t1,t2-to_big(1));
+}
 
 
 // big class function start
@@ -123,112 +132,131 @@ big operator-(big t1 , big t2){
 // multiply operation
 big operator*(big t1 , big t2){
     big t;
-    prodEqual(t1,t2);
-    t.data = multiply(t1.data , t2.data);
+    t.data = karatsuba(t1.data , t2.data);
     if(t1.sign != t2.sign)t.sign = '-';
     t.size = t.data.size();
     t.trailzero();
     return t;
 }
 
-void prodEqual(big &t1 , big &t2){
-    if(t1.size != t2.size){
-        ll temp = t1.size - t2.size;
-        string b;
-        if(temp > 0){
-            while(temp--)b+='0';
-            t2.data = b+t2.data;
-            t2.size = t1.size;
-        }else{
-            temp*=-1;
-            while(temp--)b+='0';
-            t1.data = b+t1.data;
-            t1.size = t2.size;
-        }
+string karatsuba(string num1 , string num2){
+    if(isZero(num1) || isZero(num2))
+        return "0";
+    // removes zeros from left side
+    num1 = trailzero(num1);
+    num2= trailzero(num2);
+    int len1 = num1.size() , len2 = num2.size();
+
+    if(len1 == 1 || len2 == 1){
+        return mulIntStringByChar(len1 == 1 ? num2 : num1, len1 == 1 ? num1[0] : num2[0]);
     }
-    int var = 0;
-    int count = t1.size;
-    while(count%4){
-        t1.data = '0' + t1.data;
-        t2.data = '0' + t2.data;
-        count++;
-        var++;
-    }
-    t1.size=t2.size=t1.size+var;
+    size_t n = max(len1 , len2);
+    n += (n&1);
+    size_t n2 = n/2;
+
+    num1 = padString(num1 , n - len1 , '0' , LEFT);
+    num2 = padString(num2 , n - len2 , '0' , LEFT);
+
+    string a = num1.substr(0, n2);
+    string b = num1.substr(n2, n);
+    string c = num2.substr(0, n2);
+    string d = num2.substr(n2, n);
+
+    string ac = karatsuba(a , c);
+    string bd = karatsuba(b , d);
+
+    string _ab = sumIntString(a , b);
+    string _cd = sumIntString(c , d);
+    string abcd = karatsuba(_ab , _cd);
+    abcd = subIntString(abcd , ac);
+    abcd = subIntString(abcd , bd);
+
+    ac = padString(ac, n, '0', RIGHT);
+    abcd = padString(abcd, n2, '0', RIGHT);
+    string res = sumIntString(ac, abcd);
+    res = sumIntString(res, bd);
+    return res;
+}   
+
+string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType){
+    string s(paddingCountToAdd , paddingChar);
+    return paddingType == LEFT ? s + toPad : toPad + s;
 }
 
-string multiply(string num1, string num2)
-{
-	int len1 = num1.size();
-	int len2 = num2.size();
-	if (len1 == 0 || len2 == 0)
-	return "0";
+string trailzero(string num){
+    int count;
+    for(auto i :num){
+        if(i !=0)break;
+        count++;
+    }
+    return num.substr(0,count);
+}
 
-	// will keep the result number in vector
-	// in reverse order
-	vector<int> result(len1 + len2, 0);
+bool isZero(string num){
+    for(auto i:num)
+        if(i != '0')return false;
+    return true;
+}
 
-	// Below two indexes are used to find positions
-	// in result.
-	int i_n1 = 0;
-	int i_n2 = 0;
-	
-	// Go from right to left in num1
-	for (int i=len1-1; i>=0; i--)
-	{
-		int carry = 0;
-		int n1 = num1[i] - '0';
+string mulIntStringByChar(string num1 , char num2){
+    if(num2 == '0')return "0";
+    else if(num2 == '1')return num1;
 
-		// To shift position to left after every
-		// multiplication of a digit in num2
-		i_n2 = 0;
-		
-		// Go from right to left in num2			
-		for (int j=len2-1; j>=0; j--)
-		{
-			// Take current digit of second number
-			int n2 = num2[j] - '0';
+    int carry = 0;
+    int d0 = num2 - '0' , d1 , d;
+    string ans = "";
+    for(int i = num1.size()-1; i >= 0; i--){
+        d1 = num1[i] - '0';
+        d = (d0 * d1) + carry;
+        carry = d/10;
+        d = d%10;
+        ans += d + '0';
+    }
+    if(carry) ans += carry + '0';
+    reverse(ans.begin(),ans.end());
+    return ans;
+}
 
-			// Multiply with current digit of first number
-			// and add result to previously stored result
-			// at current position.
-			int sum = n1*n2 + result[i_n1 + i_n2] + carry;
+string sumIntString(string num1 , string num2){
+    if(num2 == "") return num1;
+    if(num1 == "") return num2;
+    string ans = "";
+    size_t num1size = num1.size();
+    size_t num2size = num2.size();
+    size_t m = max(num1size , num2size);
 
-			// Carry for next iteration
-			carry = sum/10;
+    int c1,c2,c,carry = 0;
+    for(int i = 0 ; i < static_cast<int>(m); i++){
+        c1 = i < num1size ? num1[num1size - 1 - i] - '0' : 0;
+        c2 = i < num2size ? num2[num2size - 1 - i] - '0' : 0;
+        c = c1 + c2 + carry;
+        carry = c/10;
+        ans += (c%10) + '0';
+    }
+    if(carry) ans += (carry + '0');
+    reverse(ans.begin(), ans.end());
+    return ans;
+}
 
-			// Store result
-			result[i_n1 + i_n2] = sum % 10;
+string subIntString(string num1 , string num2){
+    if(num2 == "")return num1;
 
-			i_n2++;
-		}
-
-		// store carry in next cell
-		if (carry > 0)
-			result[i_n1 + i_n2] += carry;
-
-		// To shift position to left after every
-		// multiplication of a digit in num1.
-		i_n1++;
-	}
-
-	// ignore '0's from the right
-	int i = result.size() - 1;
-	while (i>=0 && result[i] == 0)
-	i--;
-
-	// If all were '0's - means either both or
-	// one of num1 or num2 were '0'
-	if (i == -1)
-	return "0";
-
-	// generate the result string
-	string s = "";
-	
-	while (i >= 0)
-		s += std::to_string(result[i--]);
-
-	return s;
+    string ans = "";
+    size_t num1size = num1.size();
+    size_t num2size = num2.size();
+    int c1,c2,carry = 0;
+    for(int i = 0 ; i<num1.size();i++){
+        c1 = num1[num1size - 1 - i] - '0' - carry;
+        c2 = i < num2size ? num2[num2size - 1 - i] - '0' : 0;
+        carry = 0;
+        if (c1 < c2){
+            carry = 1;
+            c1 += 10;
+        }
+        ans += (c1 - c2) + '0';
+    }
+    reverse(ans.begin() , ans.end());
+    return isZero(ans) ? "0" : trailzero(ans);
 }
 
 // divide function
@@ -303,7 +331,7 @@ string minuss(string a,string b)//subtraction of natural numbers
 	{
 		if(c1.at(i)<0)
 		{
-			c1.at(i)+=n;
+			c1.at(i)+= 10;
 			c1.at(i+1)--;
 		}
 	}
@@ -420,8 +448,11 @@ char validOperation(big &t1 , big &t2 , char op){
 void big::trailzero(){
     int count = 0,i=0;
     while(data[i++] == '0')count++;
-    size = size-count;
     data = data.substr(count,size);
+    if(data.size() == 0){
+        data = "0";
+    }
+    size = data.size();
 }
 
 // conditional operation
