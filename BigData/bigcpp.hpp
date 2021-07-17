@@ -7,13 +7,13 @@ using namespace std;
 enum PaddingType { LEFT, RIGHT };
 
  //product fiinding function
-string karatsuba(string num1,string num2);
-string trailzero(string num);
-bool isZero(string num);
-string mulIntStringByChar(string num1 , char num2);
-string sumIntString(string num1 , string num2);
-string subIntString(string num1 , string num2);
-string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType);
+string karatsuba(string num1,string num2); // karatsuba algo. for multiplying two strings
+string trailzero(string num); // removes '0' from left side of string
+bool isZero(string num); //checking if string containing all '0'
+string mulIntStringByChar(string num1 , char num2); // multiplying string by character
+string sumIntString(string num1 , string num2); //substracting two integer string
+string subIntString(string num1 , string num2); // adding two integer string
+string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType); //adding zeros in string
 
 // divide functions
 int judge(string a,string b);
@@ -23,7 +23,7 @@ string divide(string a,string b);
 
 class big
 {
-private:
+protected:
     string data;
     ll size=0;
     char sign = '+';
@@ -38,8 +38,8 @@ public:
     friend big operator-(big t1 , big t2);
     friend big operator*(big t1 , big t2);
     friend big operator/(big t1 , big t2);
-    // size checking and make equal size of both value to be perform
-    friend void makeEqual(big &t1 , big &t2);
+    // sorting two string
+    friend void arrange_Order(big &t1 , big &t2); 
     // to check given operation is valid
     friend char validOperation(big &t1 , big &t2 , char op);
     // trailing zeros
@@ -53,13 +53,8 @@ public:
 };
 
 // data type converter
-big to_big(int x);
-// squareroot finder
-big power(big t1 , big t2){
-    if(t2 < to_big(1))return to_big(1);
-    return t1*power(t1,t2-to_big(1));
-}
-
+template<typename T>
+big to_big(T x);
 
 // big class function start
 void big::operator=(string t){
@@ -86,49 +81,31 @@ istream & operator>>(istream &out,big &t){
     return out;
 }
 
+// addition ans substraction operation
 big operator+(big t1 , big t2){
     if(validOperation(t1,t2,'+') == '-')
         return t1-t2;
-    makeEqual(t1,t2);
-    big t;
-    int a , b ,sum, carry=0;
-    for(ll i=t1.size-1;i>=0;i--){
-        a = t1.data[i]-'0';
-        b = t2.data[i]-'0';
-        sum = a + b + carry;
-       
-        carry = sum/10;
-        sum = sum%10;
-        t.data = to_string(sum) + t.data;    
-    }
-    if(carry)t.data = to_string(carry) + t.data;
-    t.size = t.data.size();
-    t.sign = t1.sign;
-    t.trailzero();
-    return t;
+    arrange_Order(t1,t2);
+    big ans;
+    ans.data = sumIntString(t1.data , t2.data);
+    ans.size = ans.data.size();
+    ans.sign = t1.sign;
+    ans.trailzero();
+    return ans;
 }
 
 big operator-(big t1 , big t2){
     if(validOperation(t1,t2,'-') == '+')
         return t1+t2;
-    makeEqual(t1,t2);
-    big t;
-    int a , b , ans , carry=0;
-    for(ll i = t1.size-1;i>=0;i--){
-        a = t1.data[i];
-        b = t2.data[i];
-        ans = a - b - carry;
-        if(ans < 0){
-            ans = (10 + a ) - b - carry;
-            carry = 1;
-        }else carry = 0;
-        t.data = to_string(ans) + t.data;
-    }
-    t.sign = t1.sign;
-    t.size = t.data.size();
-    t.trailzero();
-    return t;
+    arrange_Order(t1,t2);
+    big ans;
+    ans.data = subIntString(t1.data , t2.data);
+    ans.sign = t1.sign;
+    ans.size = ans.data.size();
+    ans.trailzero();
+    return ans;
 }
+
 // multiply operation
 big operator*(big t1 , big t2){
     big t;
@@ -386,7 +363,7 @@ string minuss(string a,string b)//subtraction of natural numbers
 	return e;
 }
 
-void makeEqual(big &t1 , big &t2){
+void arrange_Order(big &t1 , big &t2){
     if(t1.size == t2.size)return;
     
     ll temp = t1.size - t2.size;
@@ -498,8 +475,10 @@ bool operator>=(big t1 , big t2){
     if(t1>t2 || t1==t2)return true;
     else return false;
 }
-// int to big converting
-big to_big(int x){
+
+// other datatype to big converting
+template<typename T>
+big to_big(T x){
     big t;
     t = to_string(x);
     return t;
