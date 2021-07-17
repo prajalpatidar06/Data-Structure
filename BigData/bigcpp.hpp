@@ -38,8 +38,6 @@ public:
     friend big operator-(big t1 , big t2);
     friend big operator*(big t1 , big t2);
     friend big operator/(big t1 , big t2);
-    // sorting two string
-    friend void arrange_Order(big &t1 , big &t2); 
     // to check given operation is valid
     friend char validOperation(big &t1 , big &t2 , char op);
     // trailing zeros
@@ -85,7 +83,6 @@ istream & operator>>(istream &out,big &t){
 big operator+(big t1 , big t2){
     if(validOperation(t1,t2,'+') == '-')
         return t1-t2;
-    arrange_Order(t1,t2);
     big ans;
     ans.data = sumIntString(t1.data , t2.data);
     ans.size = ans.data.size();
@@ -97,10 +94,9 @@ big operator+(big t1 , big t2){
 big operator-(big t1 , big t2){
     if(validOperation(t1,t2,'-') == '+')
         return t1+t2;
-    arrange_Order(t1,t2);
     big ans;
-    ans.data = subIntString(t1.data , t2.data);
-    ans.sign = t1.sign;
+    ans.sign = (t2 > t1) ? '-' : '+';
+    ans.data = subIntString((t2 > t1) ? t2.data : t1.data , (t2 > t1) ? t1.data : t2.data);
     ans.size = ans.data.size();
     ans.trailzero();
     return ans;
@@ -363,47 +359,17 @@ string minuss(string a,string b)//subtraction of natural numbers
 	return e;
 }
 
-void arrange_Order(big &t1 , big &t2){
-    if(t1.size == t2.size)return;
-    
-    ll temp = t1.size - t2.size;
-    string b;
-    if(temp > 0){
-        while(temp--)b+='0';
-        t2.data = b+t2.data;
-        t2.size = t1.size;
-    }else{
-        temp*=-1;
-        while(temp--)b+='0';
-        t1.data = b+t1.data;
-        t1.size = t2.size;
-    }
-
-    // arrange order for easy operation 
-    bool check = true;
-    for(int i=0;i<t1.size;i++){
-        if(t2.data[i] > t1.data[i]){
-            check = false;
-            break;
-        }else if(t1.data[i] > t2.data[i]){
-            check = true;
-            break;
-        }
-    }
-    big t3;
-    if(check == false){
-        t3 = t1;
-        t1 = t2;
-        t2 = t3;
-    }
-}
-
 char validOperation(big &t1 , big &t2 , char op){
     if(op == '+'){
         if(t1.sign==t2.sign && op == '+')return '+';
         if(t1.sign != t2.sign){
             if(t2.sign == '-')t2.sign = '+';
-            else if(t1.sign == '-')t2.sign = '-';
+            else if(t1.sign == '-'){
+                big t3 = t1;
+                t1 = t2;
+                t2 = t3;
+                t2.sign = '+';
+            }
             return '-';
         }
         else return '+';
