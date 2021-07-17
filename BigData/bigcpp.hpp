@@ -13,7 +13,7 @@ bool isZero(string num);
 string mulIntStringByChar(string num1 , char num2);
 string sumIntString(string num1 , string num2);
 string subIntString(string num1 , string num2);
-string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType = RIGHT);
+string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType);
 
 // divide functions
 int judge(string a,string b);
