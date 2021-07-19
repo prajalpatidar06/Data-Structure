@@ -6,14 +6,14 @@ using namespace std;
 #define ll long long
 enum PaddingType { LEFT, RIGHT };
 
- //product fiinding function
+//string arithmatic
 string karatsuba(string num1,string num2); // karatsuba algo. for multiplying two strings
+string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType); //adding zeros in string
 string trailzero(string num); // removes '0' from left side of string
 bool isZero(string num); //checking if string containing all '0'
 string mulIntStringByChar(string num1 , char num2); // multiplying string by character
 string sumIntString(string num1 , string num2); //substracting two integer string
 string subIntString(string num1 , string num2); // adding two integer string
-string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType); //adding zeros in string
 
 // divide functions
 int judge(string a,string b);
@@ -21,14 +21,16 @@ string dezero(string a);
 string minuss(string a,string b);
 string divide(string a,string b);
 
-class big
-{
+class big{
 protected:
     string data;
     ll size=0;
     char sign = '+';
 public:
     void operator=(string t);
+    string get_data(){return data;}
+    void set_sign(char sign){ this->sign = sign ;}
+    char get_sign(){return sign;}
     //cout function
     friend ostream & operator<<(ostream &out , big t);
     // cin function
@@ -50,14 +52,10 @@ public:
     friend bool operator<=(big t1 , big t2);
 };
 
-// data type converter
-template<typename T>
-big to_big(T x);
-
 // big class function start
 void big::operator=(string t){
-    if(t[0] == '-'){
-        sign = '-';
+    if(t[0] == '-' || t[0] == '+'){
+        sign = (t[0] == '-')? '-' : '+';
         data = t.substr(1,t.size()-1);
         size = t.size()-1;
     }else{
@@ -112,6 +110,108 @@ big operator*(big t1 , big t2){
     return t;
 }
 
+// divide function
+big operator/(big t1 , big t2){
+    big t;
+    t.data = divide(t1.data,t2.data);
+    t.size = t.data.size();
+    t.sign =(t1.sign == t2.sign)? '+': '-';
+    return t;
+}
+
+char validOperation(big &t1 , big &t2 , char op){
+    if(op == '+'){
+        if(t1.sign==t2.sign && op == '+')return '+';
+        if(t1.sign != t2.sign){
+            if(t2.sign == '-')t2.sign = '+';
+            else if(t1.sign == '-'){
+                big t3 = t1;
+                t1 = t2;
+                t2 = t3;
+                t2.sign = '+';
+            }
+            return '-';
+        }
+        else return '+';
+    }else if(op == '-'){
+        if(t2.sign == '-'){
+            t2.sign = '+';
+            op = '+';
+        }
+        if(t1.sign==t2.sign && op == '+')return '+';
+        else if(t1.sign=='-' && op == '-'){
+            t2.sign = '-';
+            return '+';
+        }
+        else return '-';
+    }
+    return op;
+}
+
+void big::trailzero(){
+    int count = 0,i=0;
+    while(data[i++] == '0')count++;
+    data = data.substr(count,size);
+    if(data.size() == 0){
+        data = "0";
+    }
+    size = data.size();
+}
+
+// conditional operation
+bool operator<(big t1 , big t2){
+    if(t1.size < t2.size || (t1.sign == '-' && t2.sign == '+'))return true;
+    else if(t1.size > t2.size)return false;
+    else
+        for(ll i=0; i<t1.size;i++)
+            if(t1.data[i]>=t2.data[i])
+                return false;
+            else
+                return true;
+    return true;
+}
+
+bool operator<=(big t1 , big t2){
+    if(t1<t2 || t1==t2)return true;
+    else return false;
+}
+
+bool operator==(big t1 , big t2){
+    if(t1.size < t2.size || t1.size > t2.size || (t1.sign != t2.sign ))return false;
+    else
+        for(ll i=0; i<t1.size;i++)
+            if(t1.data[i]>t2.data[i] || t1.data[i] < t2.data[i])
+                return false;
+    return true;
+}
+
+bool operator>(big t1 , big t2){
+    if(t1.size > t2.size || (t1.sign == '+' && t2.sign == '-'))return true;
+    else if(t1.size < t2.size)return false;
+    else
+        for(ll i=0; i<t1.size;i++)
+            if(t1.data[i]<= t2.data[i])
+                return false;
+            else
+                return true;
+    return true;
+}
+
+bool operator>=(big t1 , big t2){
+    if(t1>t2 || t1==t2)return true;
+    else return false;
+}
+
+// other datatype to big converting
+template<typename T>
+big to_big(T x){
+    big t;
+    t = to_string(x);
+    return t;
+}
+// big class end
+
+// + , -  ans * string functions
 string karatsuba(string num1 , string num2){
     if(isZero(num1) || isZero(num2))
         return "0";
@@ -232,14 +332,7 @@ string subIntString(string num1 , string num2){
     return isZero(ans) ? "0" : trailzero(ans);
 }
 
-// divide function
-big operator/(big t1 , big t2){
-    big t;
-    t.data = divide(t1.data,t2.data);
-    t.size = t.data.size();
-    t.sign =(t1.sign == t2.sign)? '+': '-';
-    return t;
-}
+// dividing string functions
 
 string dezero(string a)//Used to remove the zero before the positive number, that is to say, you can enter 000001 like this number
 {
@@ -359,94 +452,197 @@ string minuss(string a,string b)//subtraction of natural numbers
 	return e;
 }
 
-char validOperation(big &t1 , big &t2 , char op){
-    if(op == '+'){
-        if(t1.sign==t2.sign && op == '+')return '+';
-        if(t1.sign != t2.sign){
-            if(t2.sign == '-')t2.sign = '+';
-            else if(t1.sign == '-'){
-                big t3 = t1;
-                t1 = t2;
-                t2 = t3;
-                t2.sign = '+';
-            }
-            return '-';
-        }
-        else return '+';
-    }else if(op == '-'){
-        if(t2.sign == '-'){
-            t2.sign = '+';
-            op = '+';
-        }
-        if(t1.sign==t2.sign && op == '+')return '+';
-        else if(t1.sign=='-' && op == '-'){
-            t2.sign = '-';
-            return '+';
-        }
-        else return '-';
+// bigfloat class start
+class bigfloat{
+private:
+    string floating = "";
+    big filter_data;
+    char sign = '+';
+    bool isdecimal = false;
+    ll decimal_index = 0;
+public:
+    void operator= (string t);
+    friend ostream & operator<<(ostream& out , bigfloat t);
+    friend istream & operator>>(istream& in , bigfloat &t);
+    // basic binary operation
+    friend bigfloat operator+(bigfloat t1 , bigfloat t2);
+    friend bigfloat operator-(bigfloat t1 , bigfloat t2);
+    friend bigfloat operator*(bigfloat t1 , bigfloat t2);
+    friend bigfloat operator/(bigfloat t1 , bigfloat t2);
+    // conditional operator
+    friend bool operator<(bigfloat t1 , bigfloat t2);
+    friend bool operator>(bigfloat t1 , bigfloat t2);
+    friend bool operator==(bigfloat t1 , bigfloat t2);
+    friend bool operator>=(bigfloat t1 , bigfloat t2);
+    friend bool operator<=(bigfloat t1 , bigfloat t2);
+};
+
+// bigfloat I/O and assignment operation
+ostream& operator<<(ostream& out , bigfloat t){
+    if(t.floating[0] != '-' && t.sign == '-')
+        out<<'-';
+    out<<t.floating;
+    return out;
+}
+
+istream& operator>>(istream& in , bigfloat &t){
+    in>>t.floating;
+    t = t.floating;
+    return in;
+}
+
+void bigfloat::operator=(string t){
+    floating = t;
+    if(floating[0] == '-' || floating[0] == '+'){
+        sign = (floating[0] == '-') ? '-' : '+';
+        floating = floating.substr(1,floating.size());
     }
-    return op;
-}
-
-void big::trailzero(){
-    int count = 0,i=0;
-    while(data[i++] == '0')count++;
-    data = data.substr(count,size);
-    if(data.size() == 0){
-        data = "0";
+    for(auto i = 0 ; i < floating.size() ; i++){
+        if(floating[i] == '.'){
+            isdecimal = true;
+            decimal_index = floating.size() - i - 1;
+            floating.erase(i,1);
+            break;
+        }    
     }
-    size = data.size();
+    filter_data = floating;
+    filter_data.set_sign(sign);
+    floating = t;
 }
 
-// conditional operation
-bool operator<(big t1 , big t2){
-    if(t1.size < t2.size || (t1.sign == '-' && t2.sign == '+'))return true;
-    else if(t1.size > t2.size)return false;
-    else
-        for(ll i=0; i<t1.size;i++)
-            if(t1.data[i]>=t2.data[i])
-                return false;
-            else
-                return true;
-    return true;
+// bigfloat arithematic operation
+bigfloat operator+(bigfloat t1 , bigfloat t2){
+    if(t1.sign != t2.sign){
+        if(t1.sign == '-'){
+            t1.sign = '+';
+            t1.filter_data.set_sign('+');
+            return t2 - t1;
+        }
+        return t1 - t2;
+    }
+    bigfloat ans;
+    string t1data = t1.filter_data.get_data();
+    string t2data = t2.filter_data.get_data();
+    string a , b , c , d;
+    a = (t1.isdecimal) ? t1data.substr(0 , t1data.size() - t1.decimal_index) : t1data;
+    b = (t1.isdecimal) ? t1data.substr(t1data.size() - t1.decimal_index , t1data.size()) : "0";
+    c = (t2.isdecimal) ? t2data.substr(0 , t2data.size() - t2.decimal_index) : t2data;
+    d = (t2.isdecimal) ? t2data.substr(t2data.size() - t2.decimal_index , t2data.size()) : "0";
+    int diff = t1.decimal_index - t2.decimal_index;
+    if(diff < 0) b.append(diff* -1 , '0');
+    else if(diff > 0) d.append(diff , '0');
+    t1data = sumIntString(a , c);
+    t2data = sumIntString(b , d);
+    if(t1.isdecimal || t2.isdecimal){
+        ans.decimal_index = max(t1.decimal_index , t2.decimal_index);
+        ans.isdecimal = true;
+    }
+    if(t2data.size() > ans.decimal_index){
+        t1data = sumIntString(t1data , t2data.substr(0 , t2data.size() - ans.decimal_index));
+        t2data = t2data.erase(0 , t2data.size() - ans.decimal_index);
+    }
+    ans.filter_data = t1data + t2data;
+    ans.floating = t1data;
+    ans.floating.append(ans.isdecimal ? '.' + t2data  : "");
+    ans.sign = t1.sign;
+    ans.filter_data.set_sign(ans.sign);
+    return ans;
 }
 
-bool operator<=(big t1 , big t2){
-    if(t1<t2 || t1==t2)return true;
-    else return false;
+bigfloat operator-(bigfloat t1 , bigfloat t2){
+    char op = '-';
+    if(t2.sign == '-'){
+        op = '+';
+        t2.sign = '+';
+        t2.filter_data.set_sign('+');
+    }
+    if(t1.sign == t2.sign && op == '+') return t1+t2;
+    if(t1.sign == '-' && op == '-'){
+        t2.sign = '-';
+        t2.filter_data.set_sign('-');
+        return t1+t2;
+    }
+    bigfloat ans;
+    string t1data = t1.filter_data.get_data();
+    string t2data = t2.filter_data.get_data();
+
+    int decidiff = t1.decimal_index - t2.decimal_index;
+    if(decidiff < 0) t1data.append(decidiff* -1 , '0');
+    else if(decidiff > 0) t2data.append(decidiff , '0');
+
+    int intdiff = t1data.size() - t2data.size();
+    if(intdiff < 0) t1data.insert(0 , intdiff* -1 , '0');
+    else if(intdiff > 0) t2data.insert(0 , intdiff , '0');
+    string sub = subIntString( t1 >= t2 ? t1data : t2data , t1 < t2 ? t1data : t2data);
+    if(t1.isdecimal || t2.isdecimal){
+        ans.decimal_index = max(t1.decimal_index , t2.decimal_index);
+        ans.isdecimal = true;
+    }
+    ans.filter_data = sub;
+    ans.floating = sub;
+    if(ans.isdecimal)
+        ans.floating.insert(ans.decimal_index , 1 , '.');
+    ans.sign = (t1 >= t2 ) ? '+' : '-';
+    ans.filter_data.set_sign(ans.sign);
+    return ans;
 }
 
-bool operator==(big t1 , big t2){
-    if(t1.size < t2.size || t1.size > t2.size || (t1.sign != t2.sign ))return false;
-    else
-        for(ll i=0; i<t1.size;i++)
-            if(t1.data[i]>t2.data[i] || t1.data[i] < t2.data[i])
-                return false;
-    return true;
+bigfloat operator*(bigfloat num1 , bigfloat num2){
+    bigfloat ans;
+    ans.filter_data = num1.filter_data * num2.filter_data;
+    ans.sign = (num1.filter_data.get_sign() == num2.filter_data.get_sign()) ? '+' : '-';
+    ans.decimal_index = num1.decimal_index + num2.decimal_index;
+    ans.floating = ans.filter_data.get_data();
+    if(num1.isdecimal || num2.isdecimal){
+        ans.floating.insert(ans.floating.size() - ans.decimal_index , 1 , '.');
+        ans.isdecimal = false; 
+    }
+    if(ans.floating[0] == '.')ans.floating.insert(0 , 1 , '0');
+    if(ans.sign == '-')ans.floating.insert(0 , 1 , '-');
+    return ans;
 }
 
-bool operator>(big t1 , big t2){
-    if(t1.size > t2.size || (t1.sign == '+' && t2.sign == '-'))return true;
-    else if(t1.size < t2.size)return false;
-    else
-        for(ll i=0; i<t1.size;i++)
-            if(t1.data[i]<= t2.data[i])
-                return false;
-            else
-                return true;
-    return true;
+bigfloat operator/(bigfloat t1 , bigfloat t2);
+
+// bigfloat comparision operation 
+bool operator<(bigfloat t1 , bigfloat t2){
+    if(t1.sign == '-' && t2.sign == '+')
+        return true;
+    if(t1.sign == '+' && t2.sign == '-')
+        return false;
+    if(t1.decimal_index < t2.decimal_index)
+        return (t1.sign == t2.sign == '-') ? false : true;
+    else if(t1.decimal_index > t2.decimal_index)
+        return (t1.sign == t2.sign == '+') ? false : true;
+    else 
+        return (t1.filter_data < t2.filter_data);
 }
 
-bool operator>=(big t1 , big t2){
-    if(t1>t2 || t1==t2)return true;
-    else return false;
+bool operator>(bigfloat t1 , bigfloat t2){
+    if(t1.sign == '-' && t2.sign == '+')
+        return false;
+    if(t1.sign == '+' && t2.sign == '-')
+        return true;
+    if(t1.decimal_index < t2.decimal_index)
+        return (t1.sign == t2.sign == '-') ? true : false;
+    else if(t1.decimal_index > t2.decimal_index)
+        return (t1.sign == t2.sign == '+') ? true : false;
+    else 
+        return (t1.filter_data > t2.filter_data);
 }
 
-// other datatype to big converting
-template<typename T>
-big to_big(T x){
-    big t;
-    t = to_string(x);
-    return t;
+bool operator==(bigfloat t1 , bigfloat t2){
+    if(t1.sign != t2.sign || t1.floating.size() != t2.floating.size() || t1.isdecimal != t2.isdecimal || t1.decimal_index != t2.decimal_index)
+        return false;
+    else{
+        return t1.filter_data == t2.filter_data;
+    }
 }
 
+bool operator>=(bigfloat t1 , bigfloat t2){
+    return (t1 > t2 || t1 == t2);
+}
+
+bool operator<=(bigfloat t1 , bigfloat t2){
+    return ( t1 < t2 || t1 == t2);
+}
