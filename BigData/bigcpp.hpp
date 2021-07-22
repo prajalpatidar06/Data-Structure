@@ -1,7 +1,7 @@
 #include<iostream>
 #include<string>
-#include<vector>
 #include<algorithm>
+#include<climits>
 using namespace std;
 #define ll long long
 enum PaddingType { LEFT, RIGHT };
@@ -29,6 +29,7 @@ protected:
 public:
     void operator=(string t);
     string get_data(){return data;}
+    int get_size(){return data.size();}
     void set_sign(char sign){ this->sign = sign ;}
     char get_sign(){return sign;}
     //cout function
@@ -160,15 +161,24 @@ void big::trailzero(){
 
 // conditional operation
 bool operator<(big t1 , big t2){
+    int i = 0 ; 
+    while(t1.data[i] == '0') i++;
+    t1.data = t1.data.substr(i , t1.size);
+    t1.size = t1.data.size();
+    i = 0;
+    while(t2.data[i] == '0') i++;
+    t2.data = t2.data.substr(i , t2.size);
+    t2.size = t2.data.size();
+
     if(t1.size < t2.size || (t1.sign == '-' && t2.sign == '+'))return true;
     else if(t1.size > t2.size)return false;
     else
-        for(ll i=0; i<t1.size;i++)
-            if(t1.data[i]>=t2.data[i])
+        for(ll j=0; j<t1.size;j++)
+            if(t1.data[j] > t2.data[j])
                 return false;
-            else
-                return true;
-    return true;
+            else if(t1.data[j] == t2.data[j]) i++;
+            else return true;
+    return i != t1.data.size();
 }
 
 bool operator<=(big t1 , big t2){
@@ -177,6 +187,15 @@ bool operator<=(big t1 , big t2){
 }
 
 bool operator==(big t1 , big t2){
+    int i = 0 ; 
+    while(t1.data[i] == '0') i++;
+    t1.data = t1.data.substr(i , t1.size);
+    t1.size = t1.data.size();
+    i = 0;
+    while(t2.data[i] == '0') i++;
+    t2.data = t2.data.substr(i , t2.size);
+    t2.size = t2.data.size();
+
     if(t1.size < t2.size || t1.size > t2.size || (t1.sign != t2.sign ))return false;
     else
         for(ll i=0; i<t1.size;i++)
@@ -186,15 +205,24 @@ bool operator==(big t1 , big t2){
 }
 
 bool operator>(big t1 , big t2){
+    int i = 0 ; 
+    while(t1.data[i] == '0') i++;
+    t1.data = t1.data.substr(i , t1.size);
+    t1.size = t1.data.size();
+    i = 0;
+    while(t2.data[i] == '0') i++;
+    t2.data = t2.data.substr(i , t2.size);
+    t2.size = t2.data.size();
+    i = 0;
     if(t1.size > t2.size || (t1.sign == '+' && t2.sign == '-'))return true;
     else if(t1.size < t2.size)return false;
     else
-        for(ll i=0; i<t1.size;i++)
-            if(t1.data[i]<= t2.data[i])
+        for(ll j=0; j<t1.size;j++)
+            if(t1.data[j] < t2.data[j])
                 return false;
-            else
-                return true;
-    return true;
+            else if(t1.data[j] == t2.data[j]) i++;
+            else return true;
+    return i != t1.data.size() ;
 }
 
 bool operator>=(big t1 , big t2){
@@ -203,12 +231,10 @@ bool operator>=(big t1 , big t2){
 }
 
 // other datatype to big converting
-template<typename T>
-big to_big(T x){
-    big t;
-    t = to_string(x);
-    return t;
-}
+big to_big(string x){big t; t = x; return t;}
+big to_big(int x){return to_big(to_string(x));}
+big to_big(long long x){return to_big(to_string(x));}
+
 // big class end
 
 // + , -  ans * string functions
@@ -602,7 +628,101 @@ bigfloat operator*(bigfloat num1 , bigfloat num2){
     return ans;
 }
 
-bigfloat operator/(bigfloat t1 , bigfloat t2);
+void trail_left_zero_both_string(string &p , string &q){
+    int i=p.size() - 1 , j = q.size() - 1;
+    while(i>0 && j > 0 && p[i] == '0' && q[j] == '0'){
+        i--,j--;
+    }
+    p = p.substr(0 , i+1);
+    q = q.substr(0 , j+1);
+}
+
+string float_divide(string num1 , int num1_deci_idx , string num2 , int &ans_deci_idx){
+    if(num1_deci_idx == 0) trail_left_zero_both_string(num1 , num2);
+    if(num2 == "0" || num2.empty())return "nan";
+
+    ll count = 0;
+    string p = num1.substr(0,num1.size() - num1_deci_idx);
+    string ans = "";
+    string multiple = "1";
+    string temp;
+    bool ans_isdecimal = false;
+    bool is_multiply = false;
+    int precision = 0;
+    do{
+        while(to_big(p) < to_big(num2)){
+            if(ans.empty())ans = "0";
+            if(ans_isdecimal)
+                ans = (ans[ans.size()-1] == '0' || ans[ans.size()] == ans_deci_idx) ? ans + '0' : ans;
+            else{
+                ans_deci_idx = ans.size();
+                ans_isdecimal = true;
+            }
+            p += ((num1_deci_idx > 0) ? num1[num1.size() - num1_deci_idx] : '0');
+            num1_deci_idx--;
+            precision++;
+        }
+        count = 0;
+        while(to_big(p) >= to_big(num2)){
+            if(!ans_isdecimal)
+                temp = karatsuba(num2 , num2);
+            if(!ans_isdecimal && to_big(p) >= to_big(temp)){
+                multiple = karatsuba(multiple , num2);
+                is_multiply = false;
+                num2 = temp;
+            }
+            else{
+                if(count >= LLONG_MAX){
+                    ans = sumIntString(ans ,to_string(count));
+                    count = 0;
+                }
+                p = subIntString(p , num2);
+                count++;
+            }
+        }
+    ans = (count > 0) ? ans + to_string(count) : ans;
+    if(is_multiply){
+        multiple = karatsuba(multiple , ans);
+        is_multiply = false;
+        ans = "";
+    }
+    }while(to_big(p) >= to_big("1") && precision < 20);
+    ans_deci_idx = ans.size()- ans_deci_idx;
+    ans = karatsuba(ans,multiple);
+    return ans;
+}
+
+bigfloat operator/(bigfloat t1 , bigfloat t2){
+    bigfloat ans;
+    int diff = (t2.isdecimal) ? t2.decimal_index : 0;
+    int padding_size  = t1.decimal_index - diff ;
+    if(t1.isdecimal){
+        if(padding_size > 0){
+            t1.decimal_index = padding_size;
+            t1.floating  = t1.filter_data.get_data();
+            t1.floating.insert(t1.floating.size() - t1.decimal_index , 1 , '.');
+        }else{
+            t1.isdecimal = false;
+            t1.floating  = padString(t1.filter_data.get_data() ,padding_size * -1 , '0' , RIGHT);
+            t1.filter_data = t1.floating;
+        }   
+    }else{
+        t1.floating  = padString(t1.filter_data.get_data() , diff , '0' , RIGHT);
+        t1.filter_data = t1.floating;
+    }
+    t2.floating = t2.filter_data.get_data();
+    t2.isdecimal = false;
+    int ans_deci_idx = -1;
+    ans.floating = float_divide(t1.filter_data.get_data() , (t1.isdecimal) ? t1.decimal_index : 0 , t2.filter_data.get_data() , ans_deci_idx);
+    if(ans_deci_idx > -1){
+        ans.decimal_index = (ans.isdecimal) ? ans.decimal_index + ans_deci_idx : ans_deci_idx;
+        ans.isdecimal = true;
+        ans.filter_data = ans.floating;
+        ans.floating.insert(ans.floating.size() - ans.decimal_index , 1 , '.');
+    }
+    ans.sign = (t1.sign == t2.sign) ? '+' : '-';
+    return ans;
+} 
 
 // bigfloat comparision operation 
 bool operator<(bigfloat t1 , bigfloat t2){
