@@ -6,6 +6,7 @@ using namespace std;
 #define ll long long
 enum PaddingType { LEFT, RIGHT };
 
+
 //string arithmatic
 string karatsuba(string num1,string num2); // karatsuba algo. for multiplying two strings
 string padString(string toPad , size_t paddingCountToAdd , char paddingChar , PaddingType paddingType); //adding zeros in string
@@ -16,10 +17,10 @@ string sumIntString(string num1 , string num2); //substracting two integer strin
 string subIntString(string num1 , string num2); // adding two integer string
 
 // divide functions
-int judge(string a,string b);
-string dezero(string a);
-string minuss(string a,string b);
-string divide(string a,string b);
+string int_divide(string p , string q);
+string float_divide(string num1 , int num1_deci_idx , string num2 , int &ans_idx , bool &ans_isdecimal);
+void trail_left_zero_both_string(string &p , string &q);
+string long_division(string &p , string q);
 
 class big{
 protected:
@@ -114,7 +115,7 @@ big operator*(big t1 , big t2){
 // divide function
 big operator/(big t1 , big t2){
     big t;
-    t.data = divide(t1.data,t2.data);
+    t.data = int_divide(t1.data,t2.data);
     t.size = t.data.size();
     t.sign =(t1.sign == t2.sign)? '+': '-';
     return t;
@@ -360,122 +361,72 @@ string subIntString(string num1 , string num2){
 
 // dividing string functions
 
-string dezero(string a)//Used to remove the zero before the positive number, that is to say, you can enter 000001 like this number
-{
-	long int i;
-	for(i=0;i<a.length();i++)
-	{
-		if(a.at(i)>48) break;
-	}
-	if(i==a.length()) return "0";
-	a.erase(0,i);
-	return a;
+string float_divide(string dividend , int deci_idx , string divisor , int &ans_deci_idx , bool &ans_isdecimal){
+    if(deci_idx == 0) trail_left_zero_both_string(dividend , divisor);
+    if(divisor == "0" || divisor.empty())return "nan";
+    string quotient = "" , remainder = "";
+    int i = 0 ; 
+    do{
+        while(to_big(remainder) < to_big(divisor)){
+            if(!ans_isdecimal && i >= dividend.size() - deci_idx){
+                ans_isdecimal = true;
+                ans_deci_idx = quotient.size();
+            }
+            if(i >= dividend.size()){
+                remainder += '0';
+                ans_deci_idx = (ans_isdecimal) ? ans_deci_idx : quotient.size();
+                ans_isdecimal = true;
+            }
+            else remainder += dividend[i];
+            i++;
+        }
+        quotient += long_division(&remainder , divisor);
+        
+    }while(i < (dividend.size()+16) && dezero(remainder) != "");
+    i = quotient.size();
+    if(quotient[i-1] >= '5' && quotient[i-2] < '9'){
+        quotient[i-2]++;
+        quotient.erase(i-1);
+    }
+    ans_deci_idx = quotient.size() - ans_deci_idx;
+    return quotient;
 }
- int judge(string a,string b)//Judge the size of two positive numbers
-{
-	if(a.length()>b.length()) return 1;
-	if(a.length()<b.length()) return -1;
-	long int i;
-	for(i=0;i<a.length();i++)
-	{
-		if(a.at(i)>b.at(i)) return 1;
-		if(a.at(i)<b.at(i)) return -1;
-	}
-	return 0;
+
+string int_divide(string dividend , string divisor){
+    trail_left_zero_both_string(dividend , divisor);
+    if(divisor == "0" || divisor.empty())return "nan";
+    string quotient = "" , remainder = "";
+    int i = 0 ; 
+    do{
+        while(to_big(remainder) < to_big(divisor)){
+            if(i >= dividend.size()){
+                break;
+            }
+            else remainder += dividend[i];
+            i++;
+        }
+        quotient += long_division(&remainder , divisor);
+        
+    }while(i < dividend.size() && dezero(remainder) != "");
+    return quotient;
 }
-string minuss(string a,string b)//subtraction of natural numbers
-{
-	a=dezero(a);
-	b=dezero(b);
-	long int i,j=0;
-	string c="0";
-	string c1,c2;
-	string d="-";
-	if(judge(a,b)==0) return c;
-	if(judge(a,b)==1)
-	{
-		c1=a;
-		c2=b;
-	}
-	if(judge(a,b)==-1)
-	{
-		c1=b;
-		c2=a;
-		j=-1;
-	}
-	reverse(c1.begin(),c1.end());
-	reverse(c2.begin(),c2.end());
-	for(i=0;i<c2.length();i++)
-	{
-		if(c2.at(i)>=48&&c2.at(i)<=57) c2.at(i)-=48;
-		if(c2.at(i)>=97&&c2.at(i)<=122) c2.at(i)-=87;
-	}
-	for(i=0;i<c1.length();i++)
-	{
-		if(c1.at(i)>=48&&c1.at(i)<=57) c1.at(i)-=48;
-		if(c1.at(i)>=97&&c1.at(i)<=122) c1.at(i)-=87;
-	}
-	for(i=0;i<c2.length();i++)
-	{
-		c1.at(i)=c1.at(i)-c2.at(i);
-	}
-	for(i=0;i<c1.length()-1;i++)
-	{
-		if(c1.at(i)<0)
-		{
-			c1.at(i)+= 10;
-			c1.at(i+1)--;
-		}
-	}
-	for(i=c1.length()-1;i>=0;i--)
-	{
-		if(c1.at(i)>0) break;
-	}
-	c1.erase(i+1,c1.length());
-	for(i=0;i<c1.length();i++)
-	{
-		if(c1.at(i)>=10) c1.at(i)+=87;
-		if(c1.at(i)<10) c1.at(i)+=48;
-	}
-	reverse(c1.begin(),c1.end());
-	if(j==-1) c1.insert(0,d);
-	return c1;
+
+void trail_left_zero_both_string(string &p , string &q){
+    int i=p.size() - 1 , j = q.size() - 1;
+    while(i>0 && j > 0 && p[i] == '0' && q[j] == '0'){
+        i--,j--;
+    }
+    p = p.substr(0 , i+1);
+    q = q.substr(0 , j+1);
 }
- string divide(string a,string b)//Division of natural numbers
-{
-	if(b.length()==1&&b.at(0)==48) return "error";
-	long int i,j;
-	string c1,c2,d,e;
-	if(judge(a,b)==0) return "1";
-	if(judge(a,b)==-1)
-	{
-		return "0";
-	}
-	c1=dezero(a);
-	c2=dezero(b);
-	d="";
-	e="";
-	for(i=0;i<c1.length();i++)
-	{
-		j=0;
-		d=d+c1.at(i);
-		d=dezero(d);
-		while(judge(d,b)>=0)
-		{
-			 d=minuss(d,b);//Call the minus function minus before, also added in this article
-			d=dezero(d);
-			j++;
-		}
-		e=e+"0";
-		e.at(i)=j;
-	}
-	for(i=0;i<e.length();i++)
-	{
-		if(e.at(i)>=10) e.at(i)+=87;
-		if(e.at(i)<10) e.at(i)+=48;
-	}
-	e=dezero(e);
-	return e;
+
+string long_division(string *p , string q){
+    ll count = 0;
+    while( to_big(*p) >= to_big(q)){
+        *p = subIntString(*p,q);
+        count++;
+    }
+    return to_string(count);
 }
 
 // bigfloat class start
@@ -628,70 +579,6 @@ bigfloat operator*(bigfloat num1 , bigfloat num2){
     return ans;
 }
 
-void trail_left_zero_both_string(string &p , string &q){
-    int i=p.size() - 1 , j = q.size() - 1;
-    while(i>0 && j > 0 && p[i] == '0' && q[j] == '0'){
-        i--,j--;
-    }
-    p = p.substr(0 , i+1);
-    q = q.substr(0 , j+1);
-}
-
-string float_divide(string num1 , int num1_deci_idx , string num2 , int &ans_deci_idx){
-    if(num1_deci_idx == 0) trail_left_zero_both_string(num1 , num2);
-    if(num2 == "0" || num2.empty())return "nan";
-
-    ll count = 0;
-    string p = num1.substr(0,num1.size() - num1_deci_idx);
-    string ans = "";
-    string multiple = "1";
-    string temp;
-    bool ans_isdecimal = false;
-    bool is_multiply = false;
-    int precision = 0;
-    do{
-        while(to_big(p) < to_big(num2)){
-            if(ans.empty())ans = "0";
-            if(ans_isdecimal)
-                ans = (ans[ans.size()-1] == '0' || ans[ans.size()] == ans_deci_idx) ? ans + '0' : ans;
-            else{
-                ans_deci_idx = ans.size();
-                ans_isdecimal = true;
-            }
-            p += ((num1_deci_idx > 0) ? num1[num1.size() - num1_deci_idx] : '0');
-            num1_deci_idx--;
-            precision++;
-        }
-        count = 0;
-        while(to_big(p) >= to_big(num2)){
-            if(!ans_isdecimal)
-                temp = karatsuba(num2 , num2);
-            if(!ans_isdecimal && to_big(p) >= to_big(temp)){
-                multiple = karatsuba(multiple , num2);
-                is_multiply = false;
-                num2 = temp;
-            }
-            else{
-                if(count >= LLONG_MAX){
-                    ans = sumIntString(ans ,to_string(count));
-                    count = 0;
-                }
-                p = subIntString(p , num2);
-                count++;
-            }
-        }
-    ans = (count > 0) ? ans + to_string(count) : ans;
-    if(is_multiply){
-        multiple = karatsuba(multiple , ans);
-        is_multiply = false;
-        ans = "";
-    }
-    }while(to_big(p) >= to_big("1") && precision < 20);
-    ans_deci_idx = ans.size()- ans_deci_idx;
-    ans = karatsuba(ans,multiple);
-    return ans;
-}
-
 bigfloat operator/(bigfloat t1 , bigfloat t2){
     bigfloat ans;
     int diff = (t2.isdecimal) ? t2.decimal_index : 0;
@@ -712,9 +599,10 @@ bigfloat operator/(bigfloat t1 , bigfloat t2){
     }
     t2.floating = t2.filter_data.get_data();
     t2.isdecimal = false;
-    int ans_deci_idx = -1;
-    ans.floating = float_divide(t1.filter_data.get_data() , (t1.isdecimal) ? t1.decimal_index : 0 , t2.filter_data.get_data() , ans_deci_idx);
-    if(ans_deci_idx > -1){
+    int ans_deci_idx = INT_MIN;
+    bool ans_isdecimal=false;
+    ans.floating = float_divide(t1.filter_data.get_data() , (t1.isdecimal) ? t1.decimal_index : 0 , t2.filter_data.get_data() , ans_deci_idx , ans_isdecimal);
+    if(ans_isdecimal){
         ans.decimal_index = (ans.isdecimal) ? ans.decimal_index + ans_deci_idx : ans_deci_idx;
         ans.isdecimal = true;
         ans.filter_data = ans.floating;
