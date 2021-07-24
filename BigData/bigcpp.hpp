@@ -20,7 +20,7 @@ string subIntString(string num1 , string num2); // adding two integer string
 string int_divide(string p , string q);
 string float_divide(string num1 , int num1_deci_idx , string num2 , int &ans_idx , bool &ans_isdecimal);
 void trail_left_zero_both_string(string &p , string &q);
-string long_division(string &p , string q);
+string long_division(string *p , string q);
 
 class big{
 protected:
@@ -284,12 +284,11 @@ string padString(string toPad , size_t paddingCountToAdd , char paddingChar , Pa
 }
 
 string trailzero(string num){
-    int count;
-    for(auto i :num){
-        if(i !=0)break;
-        count++;
+    int i=0;
+    for(; i < num.size() ; i++){
+        if(num[i] != '0')break;
     }
-    return num.substr(0,count);
+    return num.substr(i);
 }
 
 bool isZero(string num){
@@ -382,7 +381,7 @@ string float_divide(string dividend , int deci_idx , string divisor , int &ans_d
         }
         quotient += long_division(&remainder , divisor);
         
-    }while(i < (dividend.size()+16) && dezero(remainder) != "");
+    }while(i < (dividend.size()+16) && trailzero(remainder) != "");
     i = quotient.size();
     if(quotient[i-1] >= '5' && quotient[i-2] < '9'){
         quotient[i-2]++;
@@ -407,7 +406,7 @@ string int_divide(string dividend , string divisor){
         }
         quotient += long_division(&remainder , divisor);
         
-    }while(i < dividend.size() && dezero(remainder) != "");
+    }while(i < dividend.size() && trailzero(remainder) != "");
     return quotient;
 }
 
@@ -653,4 +652,11 @@ bool operator>=(bigfloat t1 , bigfloat t2){
 
 bool operator<=(bigfloat t1 , bigfloat t2){
     return ( t1 < t2 || t1 == t2);
+}
+
+//any data type to big_float converting
+bigfloat to_bigfloat(string a){
+    bigfloat t;
+    t = "a";
+    return t;
 }
