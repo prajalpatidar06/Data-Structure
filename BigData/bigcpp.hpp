@@ -567,7 +567,7 @@ bigfloat operator*(bigfloat num1 , bigfloat num2){
     bigfloat ans;
     ans.filter_data = num1.filter_data * num2.filter_data;
     ans.sign = (num1.filter_data.get_sign() == num2.filter_data.get_sign()) ? '+' : '-';
-    ans.decimal_index = num1.decimal_index + num2.decimal_index;
+    ans.decimal_index = (num1.isdecimal) ? num1.decimal_index : 0 + (num2.isdecimal) ? num2.decimal_index : 0;
     ans.floating = ans.filter_data.get_data();
     if(num1.isdecimal || num2.isdecimal){
         ans.floating.insert(ans.floating.size() - ans.decimal_index , 1 , '.');
