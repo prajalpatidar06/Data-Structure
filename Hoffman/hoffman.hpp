@@ -3,7 +3,7 @@ using namespace std;
 
 struct node{
     int data [26]  = {0};
-    int isend [26] = {0};
+    bool isend [26] = {0};
     node* next [26] = {0};
 };
 
@@ -18,6 +18,8 @@ public:
     void insert(string word);
     bool ispresent(string word){return ispresent(word , word.size() , root);}
     bool erase(string word);
+    vector<string> search(string key);
+    void search(string key , node* head , vector<string>& result);
     bool clear();
 };
 
@@ -31,7 +33,7 @@ node* tries::insert(string word , int n ,  node* head){
         head = new node;
     head->data[word[n] - 'a']++;
     if(n == 0){
-        head->isend[word[n] - 'a']++;
+        head->isend[word[n] - 'a'] = true;
         return head;
     }
     else{
@@ -51,4 +53,29 @@ bool tries::ispresent(string word , int n , node* head){
         else false;
     }
     return false;
+}
+
+vector<string> tries::search(string key){
+    static node* head = root;
+    vector<string> result;
+    int key_size = key.size();
+    for(int i = 0 ;i < key_size ; i++){
+        if(head->data[key[i] - 'a']){
+            head =  head->next[key[i] - 'a'];
+        }
+        else return result;
+    }
+    search(key , head , result);
+    return result;
+}
+
+void tries::search(string key , node* head , vector<string>& result){
+    if(head == NULL)return;
+    for(int i = 0 ; i < 26 ; i++){
+        if(head->data[i]){
+            if(head->isend[i])
+                result.push_back(key + (char)(i + 'a'));
+            search(key + char(i + 'a') , head->next[i] , result);
+        }
+    }
 }
