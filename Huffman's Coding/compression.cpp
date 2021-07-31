@@ -1,4 +1,4 @@
-#include"hoffman.hpp"
+#include"huffman.hpp"
 #include<fstream>
 #include<bitset>
 
